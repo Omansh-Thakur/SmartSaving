@@ -355,7 +355,7 @@ MIT License - do whatever you want with it (credit us though! 😊)
 | Name                | What we did                       |
 | ------------------- | --------------------------------- |
 | **Omansh Thakur**   | Full Stack Development & Services |
-| **Sanchit Agarwal** | Backend & Authentication          |
+| **Sanchit Agrawal** | Backend & Authentication          |
 | **Noman Siddique**  | UI & Widgets                      |
 
 ---

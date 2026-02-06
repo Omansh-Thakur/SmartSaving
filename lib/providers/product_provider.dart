@@ -6,7 +6,7 @@ import '../models/product.dart';
 final amazonServiceProvider = Provider((ref) => amazonService);
 final flipkartServiceProvider = Provider((ref) => flipkartService);
 
-final searchQueryProvider = StateProvider<String>((ref) => '');
+final searchQueryProvider = StateProvider<String>((ref) => 'Popular');
 
 final productsProvider =
     StateNotifierProvider<ProductsNotifier, AsyncValue<List<Product>>>((ref) {
@@ -21,9 +21,11 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   Future<void> _searchProducts() async {
-    // Don't search if query is empty
+    // If query is empty, show all mock products
     if (query.trim().isEmpty) {
-      state = AsyncValue.data([]);
+      print('⚠️  Empty query - showing all mock products');
+      final mockProducts = await amazonService.searchProducts('Popular');
+      state = AsyncValue.data(mockProducts);
       return;
     }
 

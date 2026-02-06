@@ -13,6 +13,8 @@ class FlipkartService {
       'category': 'Smartphones',
       'basePrice': 79999,
       'discount': 0.08,
+      'image':
+          'https://images.unsplash.com/photo-1592286927505-1def25115558?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_002',
@@ -20,6 +22,8 @@ class FlipkartService {
       'category': 'Smartphones',
       'basePrice': 74999,
       'discount': 0.10,
+      'image':
+          'https://images.unsplash.com/photo-1511707267537-b85faf00021e?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_003',
@@ -27,6 +31,8 @@ class FlipkartService {
       'category': 'Audio',
       'basePrice': 22999,
       'discount': 0.18,
+      'image':
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_004',
@@ -34,6 +40,8 @@ class FlipkartService {
       'category': 'Computers',
       'basePrice': 99999,
       'discount': 0.12,
+      'image':
+          'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_005',
@@ -41,6 +49,8 @@ class FlipkartService {
       'category': 'Tablets',
       'basePrice': 59999,
       'discount': 0.09,
+      'image':
+          'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_006',
@@ -48,6 +58,8 @@ class FlipkartService {
       'category': 'Wearables',
       'basePrice': 34999,
       'discount': 0.08,
+      'image':
+          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_007',
@@ -55,6 +67,8 @@ class FlipkartService {
       'category': 'Cameras',
       'basePrice': 189999,
       'discount': 0.07,
+      'image':
+          'https://images.unsplash.com/photo-1617638924702-92f37fcb18ad?w=300&h=300&fit=crop',
     },
     {
       'id': 'prod_008',
@@ -62,6 +76,8 @@ class FlipkartService {
       'category': 'TVs',
       'basePrice': 49999,
       'discount': 0.15,
+      'image':
+          'https://images.unsplash.com/photo-1598327318881-a07a7fbb4e50?w=300&h=300&fit=crop',
     },
   ];
 
@@ -256,6 +272,7 @@ class FlipkartService {
     final basePrice = data['basePrice'] as int;
     final discount = data['discount'] as double;
     final actualPrice = (basePrice * (1 - discount)).toDouble();
+    final imageUrl = data['image'] as String?;
 
     return Product(
       id: data['id'] as String,
@@ -263,6 +280,7 @@ class FlipkartService {
       description:
           'Exclusive ${data['category']} with great deals and fast delivery',
       imageUrl:
+          imageUrl ??
           'https://via.placeholder.com/300x300?text=${Uri.encodeComponent(data["name"])}',
       amazonPrice: actualPrice + Random().nextDouble() * 3000,
       flipkartPrice: actualPrice + Random().nextDouble() * 5000,

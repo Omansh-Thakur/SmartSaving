@@ -21,11 +21,24 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   Future<void> _searchProducts() async {
+    // Don't search if query is empty
+    if (query.trim().isEmpty) {
+      state = AsyncValue.data([]);
+      return;
+    }
+
     state = const AsyncValue.loading();
     try {
+      print('🔍 Provider searching for: $query');
       final amazonResults = await amazonService.searchProducts(query);
+      print('📊 Got ${amazonResults.length} results from Amazon');
+
+      if (amazonResults.isEmpty) {
+        print('⚠️  No results found, check API console logs');
+      }
       state = AsyncValue.data(amazonResults);
     } catch (e, st) {
+      print('❌ Provider search error: $e');
       state = AsyncValue.error(e, st);
     }
   }

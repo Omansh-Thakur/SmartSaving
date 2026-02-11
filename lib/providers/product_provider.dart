@@ -6,7 +6,20 @@ import '../models/product.dart';
 final amazonServiceProvider = Provider((ref) => amazonService);
 final flipkartServiceProvider = Provider((ref) => flipkartService);
 
-final searchQueryProvider = StateProvider<String>((ref) => 'Popular');
+class SearchQueryNotifier extends Notifier<String> {
+  @override
+  String build() {
+    return 'Popular';
+  }
+
+  void setQuery(String query) {
+    state = query;
+  }
+}
+
+final searchQueryProvider =
+    NotifierProvider<SearchQueryNotifier, String>(
+        SearchQueryNotifier.new);
 
 final productsProvider =
     NotifierProvider<ProductsNotifier, AsyncValue<List<Product>>>(() {

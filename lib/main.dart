@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'models/product.dart';
 import 'services/notification_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
@@ -79,10 +80,21 @@ class SmartSavingApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/product-detail') {
-          final productId = settings.arguments as String;
-          return MaterialPageRoute(
-            builder: (context) => ProductDetailScreen(productId: productId),
-          );
+          final arguments = settings.arguments;
+          if (arguments is Product) {
+            // Passed full product object
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(
+                productId: arguments.id,
+                fallbackProduct: arguments,
+              ),
+            );
+          } else if (arguments is String) {
+            // Passed only product ID (backward compatibility)
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(productId: arguments),
+            );
+          }
         }
         if (settings.name == '/price-history') {
           final productId = settings.arguments as String;

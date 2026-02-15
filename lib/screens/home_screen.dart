@@ -132,7 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         onTap: () {
                           Navigator.of(
                             context,
-                          ).pushNamed('/product-detail', arguments: product.id);
+                          ).pushNamed('/product-detail', arguments: product);
                         },
                         onTrackTap: () async {
                           if (isTracked) {
@@ -224,7 +224,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onTap: () {
                     Navigator.of(
                       context,
-                    ).pushNamed('/product-detail', arguments: product.id);
+                    ).pushNamed('/product-detail', arguments: product);
                   },
                   onTrackTap: () async {
                     if (isTracked) {

@@ -13,7 +13,7 @@ class PriceComparisonService {
       flipkartFuture,
     ]);
 
-    // Get product details from amazon (could use any source)
+    // Get product details from amazon
     final product = await amazonService.getProduct(productId);
 
     if (product == null) {

@@ -18,13 +18,12 @@ class SearchQueryNotifier extends Notifier<String> {
 }
 
 final searchQueryProvider =
-    NotifierProvider<SearchQueryNotifier, String>(
-        SearchQueryNotifier.new);
+    NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
 
 final productsProvider =
     NotifierProvider<ProductsNotifier, AsyncValue<List<Product>>>(() {
-      return ProductsNotifier();
-    });
+  return ProductsNotifier();
+});
 
 class ProductsNotifier extends Notifier<AsyncValue<List<Product>>> {
   late String query;
@@ -79,15 +78,27 @@ final priceComparisonProvider = FutureProvider.family<Product, String>((
   ref,
   productId,
 ) async {
-  final amazonFuture = amazonService.getCurrentPrice(productId);
-  final flipkartFuture = flipkartService.getCurrentPrice(productId);
+  const detailRequestTimeout = Duration(seconds: 8);
+  final amazonFuture = amazonService.getCurrentPrice(productId).timeout(
+        detailRequestTimeout,
+        onTimeout: () => 0.0,
+      );
+  final flipkartFuture = flipkartService.getCurrentPrice(productId).timeout(
+        detailRequestTimeout,
+        onTimeout: () => 0.0,
+      );
 
   final results = await Future.wait([amazonFuture, flipkartFuture]);
   final amazonPrice = results[0] as double;
   final flipkartPrice = results[1] as double;
 
-  final product = await amazonService.getProduct(productId);
-  if (product == null) throw Exception('Product not found');
+  final product = await amazonService.getProduct(productId).timeout(
+        detailRequestTimeout,
+        onTimeout: () => null,
+      );
+  if (product == null) {
+    throw Exception('Unable to load product details');
+  }
 
   return Product(
     id: product.id,

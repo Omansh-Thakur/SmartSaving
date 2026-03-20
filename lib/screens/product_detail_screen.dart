@@ -77,7 +77,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               widget.fallbackProduct!,
               isTracked,
               showOfflineIndicator: true,
-              showLoadingOverlay: true,
             );
           }
           // Only show skeleton if no fallback available

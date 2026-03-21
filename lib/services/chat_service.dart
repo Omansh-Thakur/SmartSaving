@@ -10,13 +10,14 @@ class ChatService {
   ChatService({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
-  static const Duration _chatTimeout = Duration(seconds: 10);
+  static const Duration _chatTimeout = Duration(seconds: 25);
 
   Future<String> sendMessage({
     required String message,
     required int productId,
   }) async {
-    if (message.trim().isEmpty) {
+    final trimmedMessage = message.trim();
+    if (trimmedMessage.isEmpty) {
       throw const ChatServiceException('Please enter a message.');
     }
 
@@ -26,14 +27,20 @@ class ChatService {
             Uri.parse(ApiConfig.chatApiUrl),
             headers: const {'Content-Type': 'application/json'},
             body: jsonEncode({
-              'message': message.trim(),
+              'message': trimmedMessage,
               'product_id': productId,
             }),
           )
           .timeout(_chatTimeout);
 
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final body = jsonDecode(response.body);
+        if (body is! Map<String, dynamic>) {
+          throw const ChatServiceException(
+            'Invalid response from server. Please try again.',
+          );
+        }
+
         final reply = body['reply']?.toString().trim();
         if (reply == null || reply.isEmpty) {
           throw const ChatServiceException(
@@ -43,17 +50,16 @@ class ChatService {
         return reply;
       }
 
-      final serverMessage = _tryParseServerMessage(response.body);
-      throw ChatServiceException(
-        serverMessage ??
-            'Unable to fetch assistant response '
-                '(HTTP ${response.statusCode}).',
-      );
+      throw ChatServiceException(_mapHttpError(response));
     } on TimeoutException {
       throw ChatServiceException(_timeoutMessage());
     } on SocketException {
       throw const ChatServiceException(
         'Network error. Check your internet connection.',
+      );
+    } on http.ClientException {
+      throw const ChatServiceException(
+        'Unable to reach assistant service. Verify backend URL and connectivity.',
       );
     } on FormatException {
       throw const ChatServiceException(
@@ -66,17 +72,44 @@ class ChatService {
     if (ApiConfig.backendBaseUrl.contains('10.0.2.2')) {
       return 'Assistant server is not reachable. If you are using a real device, run with --dart-define=BACKEND_BASE_URL=http://<your-machine-ip>:8000';
     }
-    return 'Request timed out. Please try again.';
+    return 'Assistant request timed out. Please try again.';
+  }
+
+  String _mapHttpError(http.Response response) {
+    final serverMessage = _tryParseServerMessage(response.body);
+    if (serverMessage != null && serverMessage.isNotEmpty) {
+      return serverMessage;
+    }
+
+    switch (response.statusCode) {
+      case 400:
+        return 'Please provide a valid chat message and product id.';
+      case 404:
+        return 'Product not found for assistant context.';
+      case 502:
+        return 'Assistant model is temporarily unavailable. Please retry.';
+      case 500:
+        return 'Assistant service is not configured correctly. Check backend logs.';
+      default:
+        return 'Unable to fetch assistant response (HTTP ${response.statusCode}).';
+    }
   }
 
   String? _tryParseServerMessage(String body) {
     try {
       final data = jsonDecode(body);
       if (data is Map<String, dynamic>) {
-        return data['detail']?.toString() ?? data['message']?.toString();
+        final detail = data['detail']?.toString().trim();
+        if (detail != null && detail.isNotEmpty) {
+          return detail;
+        }
+        final message = data['message']?.toString().trim();
+        if (message != null && message.isNotEmpty) {
+          return message;
+        }
       }
     } catch (_) {
-      // Ignore parse failures and fallback to generic error.
+      // Ignore parse failures and fallback to status-code based message.
     }
     return null;
   }

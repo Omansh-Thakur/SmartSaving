@@ -35,6 +35,19 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     super.dispose();
   }
 
+  int? _toBackendProductId(String rawProductId) {
+    final digits = RegExp(r'\d+')
+        .allMatches(rawProductId)
+        .map((match) => match.group(0) ?? '')
+        .join();
+
+    final parsed = int.tryParse(digits);
+    if (parsed == null || parsed <= 0) {
+      return null;
+    }
+    return parsed;
+  }
+
   @override
   Widget build(BuildContext context) {
     final productAsync = ref.watch(priceComparisonProvider(widget.productId));
@@ -51,10 +64,22 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
+          final chatProductId = _toBackendProductId(widget.productId);
+          if (chatProductId == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Assistant is unavailable for this product right now.',
+                ),
+              ),
+            );
+            return;
+          }
+
           Navigator.of(context).pushNamed(
             '/chat',
             arguments: ChatScreenArgs(
-              productId: widget.productId,
+              productId: chatProductId,
               productName: chatProductName,
             ),
           );
@@ -373,3 +398,5 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 }
+
+

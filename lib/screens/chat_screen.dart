@@ -9,7 +9,7 @@ class ChatScreenArgs {
     required this.productName,
   });
 
-  final String productId;
+  final int productId;
   final String productName;
 }
 
@@ -20,7 +20,7 @@ class ChatScreen extends StatefulWidget {
     required this.productName,
   });
 
-  final String productId;
+  final int productId;
   final String productName;
 
   @override
@@ -30,17 +30,18 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Map<String, String>> _messages = [];
+  final List<_ChatMessage> _messages = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _messages.add({
-      'role': 'bot',
-      'text':
-          'Hi! I am your Smart Assistant for ${widget.productName}. Ask me if you should buy now or wait.',
-    });
+    _messages.add(
+      _ChatMessage.bot(
+        'Hi! I am your Smart Assistant for ${widget.productName}. '
+        'Ask me if you should buy now or wait.',
+      ),
+    );
   }
 
   @override
@@ -51,39 +52,40 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendMessage() async {
-    final rawText = _messageController.text.trim();
-    if (rawText.isEmpty) {
+    final userText = _messageController.text.trim();
+    if (userText.isEmpty) {
       _showSnackBar('Please enter a message.');
       return;
     }
     if (_isLoading) return;
 
     setState(() {
-      _messages.add({'role': 'user', 'text': rawText});
-      _isLoading = true;
+      _messages.add(_ChatMessage.user(userText));
       _messageController.clear();
+      _isLoading = true;
     });
     _scrollToBottom();
 
     try {
       final reply = await chatService.sendMessage(
-        message: rawText,
-        productId: _toBackendProductId(widget.productId),
+        message: userText,
+        productId: widget.productId,
       );
 
       if (!mounted) return;
       setState(() {
-        _messages.add({'role': 'bot', 'text': reply});
+        _messages.add(_ChatMessage.bot(reply));
       });
     } catch (error) {
       if (!mounted) return;
       final message = _friendlyError(error);
       _showSnackBar(message);
       setState(() {
-        _messages.add({
-          'role': 'bot',
-          'text': 'Sorry, I could not fetch a response right now. $message',
-        });
+        _messages.add(
+          _ChatMessage.bot(
+            'Sorry, I could not fetch a response right now. $message',
+          ),
+        );
       });
     } finally {
       if (!mounted) return;
@@ -92,20 +94,6 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
     }
-  }
-
-  int _toBackendProductId(String productId) {
-    final digits = RegExp(r'\d+')
-        .allMatches(productId)
-        .map((m) => m.group(0) ?? '')
-        .join();
-
-    if (digits.isNotEmpty) {
-      final parsed = int.tryParse(digits);
-      if (parsed != null) return parsed;
-    }
-
-    return productId.hashCode.abs();
   }
 
   String _friendlyError(Object error) {
@@ -153,13 +141,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
 
                 final message = _messages[index];
-                final role = message['role'] ?? 'bot';
-                final text = message['text'] ?? '';
-                final isUser = role == 'user';
-
                 return _MessageBubble(
-                  text: text,
-                  isUser: isUser,
+                  text: message.text,
+                  isUser: message.isUser,
                 );
               },
             ),
@@ -209,6 +193,22 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+}
+
+class _ChatMessage {
+  const _ChatMessage({
+    required this.text,
+    required this.isUser,
+  });
+
+  factory _ChatMessage.user(String text) =>
+      _ChatMessage(text: text, isUser: true);
+
+  factory _ChatMessage.bot(String text) =>
+      _ChatMessage(text: text, isUser: false);
+
+  final String text;
+  final bool isUser;
 }
 
 class _MessageBubble extends StatelessWidget {

@@ -9,6 +9,7 @@ import '../services/flipkart_service.dart';
 import '../services/notification_service.dart';
 import '../services/price_history_generator_service.dart';
 import '../services/storage_service.dart';
+import '../services/tracking_api_service.dart';
 import 'auth_provider.dart';
 
 final trackedProductsProvider =
@@ -31,6 +32,24 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
 
   Future<void> _loadTrackedProducts() async {
     try {
+      final user = storageService.getUser();
+      if (user != null) {
+        // Fetch source of truth from backend database
+        final remoteItems = await trackingApiService.getTrackedItems();
+        final remoteIds = remoteItems.map((e) => e['product_id'] as String).toList();
+        await storageService.saveTrackedProducts(remoteIds);
+        
+        for (var item in remoteItems) {
+           final pid = item['product_id'];
+           final price = item['target_price'];
+           if (price != null) {
+               await storageService.saveTargetPrice(pid, (price as num).toDouble());
+           } else {
+               await storageService.removeTargetPrice(pid);
+           }
+        }
+      }
+
       final trackedIds = storageService.getTrackedProducts();
       _targetPrices
         ..clear()
@@ -190,6 +209,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
   Future<void> addTrackedProduct(Product product) async {
     try {
       await storageService.addTrackedProduct(product.id);
+      await trackingApiService.addTrackedItem(product.id, targetPrice: _targetPrices[product.id]);
       final currentState = state.maybeWhen(
         data: (items) => items,
         orElse: () => <TrackedProduct>[],
@@ -245,6 +265,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
       await storageService.removeTrackedProduct(productId);
       await storageService.removePriceHistory(productId);
       await storageService.removeTargetPrice(productId);
+      await trackingApiService.removeTrackedItem(productId);
 
       _trackingData.remove(productId);
       _targetPrices.remove(productId);
@@ -355,6 +376,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
     try {
       _targetPrices[productId] = targetPrice;
       await storageService.saveTargetPrice(productId, targetPrice);
+      await trackingApiService.updateTargetPrice(productId, targetPrice);
 
       final currentState = state.maybeWhen(
         data: (items) => items,
@@ -390,6 +412,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
     try {
       _targetPrices.remove(productId);
       await storageService.removeTargetPrice(productId);
+      await trackingApiService.updateTargetPrice(productId, null);
 
       final currentState = state.maybeWhen(
         data: (items) => items,

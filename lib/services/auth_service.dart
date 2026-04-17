@@ -137,6 +137,54 @@ class AuthService {
     }
     return false;
   }
+
+  Future<Map<String, dynamic>> updateProfile(String name, String? password) async {
+    try {
+      if (name.isEmpty || name.length < 2) {
+        return {'success': false, 'message': 'Name must be at least 2 characters'};
+      }
+
+      final token = storageService.getToken();
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      final body = {'name': name};
+      if (password != null && password.isNotEmpty) {
+        if (password.length < 6) return {'success': false, 'message': 'Password must be at least 6 characters'};
+        body['password'] = password;
+      }
+
+      final response = await http.put(
+        Uri.parse('${AppConfig.apiBaseUrl}/auth/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        if (_currentUser != null) {
+          final updatedUser = User(
+            id: _currentUser!.id,
+            email: _currentUser!.email,
+            name: name,
+            createdAt: _currentUser!.createdAt,
+          );
+          await storageService.saveUser(updatedUser, token);
+          _currentUser = updatedUser;
+        }
+        return {'success': true};
+      } else {
+        final errorData = jsonDecode(response.body);
+        final detail = errorData['detail'] ?? 'Profile update failed';
+        return {'success': false, 'message': detail};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
 }
 
 final authService = AuthService();

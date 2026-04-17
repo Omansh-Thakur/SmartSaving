@@ -73,6 +73,22 @@ class CurrentUserNotifier extends Notifier<AsyncValue<User?>> {
     }
   }
 
+  Future<bool> updateProfile(String name, String? password) async {
+    try {
+      final result = await authService.updateProfile(name, password);
+      
+      if (result['success'] as bool) {
+        state = AsyncValue.data(authService.currentUser);
+        return true;
+      } else {
+        // Just throw back error message string so UI can catch it
+        throw Exception(result['message'] as String? ?? 'Failed to update');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> logout() async {
     try {
       await authService.logout();

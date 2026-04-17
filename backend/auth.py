@@ -116,6 +116,24 @@ async def login(credentials: UserLogin):
     user.pop("hashed_password", None)
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
+class ProfileUpdate(BaseModel):
+    name: str
+    password: Optional[str] = None
+
+@router.put("/profile", response_model=dict)
+async def update_profile(update_data: ProfileUpdate, current_user: dict = Depends(get_current_user)):
+    user_id = current_user.get("id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID missing")
+    
+    hashed_password = None
+    if update_data.password and len(update_data.password) >= 6:
+        hashed_password = get_password_hash(update_data.password)
+        
+    database.update_user_profile(user_id, update_data.name, hashed_password)
+    
+    return {"success": True, "message": "Profile updated successfully"}
+
 @router.get("/me")
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user

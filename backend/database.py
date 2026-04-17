@@ -78,6 +78,22 @@ def get_tracked_products(user_id: str) -> list[Dict[str, Any]]:
     conn.close()
     return [dict(row) for row in rows]
 
+def update_user_profile(user_id: str, name: str, hashed_password: Optional[str] = None) -> None:
+    conn = get_connection()
+    cursor = conn.cursor()
+    if hashed_password:
+        cursor.execute(
+            "UPDATE users SET name = %s, hashed_password = %s WHERE id = %s",
+            (name, hashed_password, user_id)
+        )
+    else:
+        cursor.execute(
+            "UPDATE users SET name = %s WHERE id = %s",
+            (name, user_id)
+        )
+    conn.commit()
+    conn.close()
+
 def add_tracked_product(user_id: str, product_id: str, target_price: Optional[float] = None) -> None:
     conn = get_connection()
     cursor = conn.cursor()

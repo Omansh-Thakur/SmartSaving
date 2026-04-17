@@ -231,6 +231,104 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  void _showInfoDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(content),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            style: TextButton.styleFrom(foregroundColor: const Color(AppColors.primary)),
+            child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProfileSheet() {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return;
+    
+    final nameCtrl = TextEditingController(text: user.name);
+    final passCtrl = TextEditingController();
+    bool isLoading = false;
+    String? error;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (stCtx, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              left: 24, right: 24, top: 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Edit Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Full Name', 
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.person),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passCtrl,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'New Password (Optional)', 
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.lock),
+                  ),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(error!, style: const TextStyle(color: Colors.red)),
+                ],
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: AppDimensions.buttonHeight,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                       backgroundColor: const Color(AppColors.primary),
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: isLoading ? null : () async {
+                      setSheetState(() { isLoading = true; error = null; });
+                      try {
+                        await ref.read(currentUserProvider.notifier).updateProfile(nameCtrl.text, passCtrl.text);
+                        if (mounted) Navigator.of(ctx).pop();
+                      } catch (e) {
+                         setSheetState(() { error = e.toString().replaceAll('Exception: ', ''); isLoading = false; });
+                      }
+                    },
+                    child: isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
   Widget _buildProfileScreen() {
     return Consumer(
       builder: (context, ref, _) {
@@ -311,9 +409,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _sectionTitle(context, 'ACCOUNT SETTINGS'),
                         _ProfileCard(
                           items: [
-                            _ProfileItem(icon: Icons.person_outline_rounded, title: 'Edit Profile'),
+                            _ProfileItem(
+                              icon: Icons.person_outline_rounded, 
+                              title: 'Edit Profile',
+                              onTap: _showEditProfileSheet,
+                            ),
                             _ProfileItem(icon: Icons.notifications_none_rounded, title: 'Notifications Preferences'),
-                            _ProfileItem(icon: Icons.security_rounded, title: 'Security & Privacy'),
+                            _ProfileItem(
+                              icon: Icons.security_rounded, 
+                              title: 'Security & Privacy',
+                              onTap: () => _showInfoDialog('Security & Privacy', 'Your security is our top priority. We encrypt all passwords using bcrypt in our PostgreSQL databases. Please never share your credentials.'),
+                            ),
                           ],
                         ),
                         
@@ -322,8 +428,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _ProfileCard(
                           items: [
                             _ProfileItem(icon: Icons.info_outline_rounded, title: 'App Version', trailing: 'v1.0.0'),
-                            _ProfileItem(icon: Icons.description_outlined, title: 'Terms of Service'),
-                            _ProfileItem(icon: Icons.help_outline_rounded, title: 'Help Center'),
+                            _ProfileItem(
+                              icon: Icons.description_outlined, 
+                              title: 'Terms of Service',
+                              onTap: () => _showInfoDialog('Terms of Service', 'SmartSaving relies on Amazon and Flipkart public product listings. Do not abuse or spam our internal tracking systems. Usage indicates agreement.'),
+                            ),
+                            _ProfileItem(
+                              icon: Icons.help_outline_rounded, 
+                              title: 'Help Center',
+                              onTap: () => _showInfoDialog('Help Center', 'Need assistance? Reach out to our 24/7 technical support team at support@smartsaving.com!'),
+                            ),
                           ],
                         ),
                         
@@ -410,7 +524,7 @@ class _ProfileCard extends StatelessWidget {
                 trailing: item.trailing != null 
                   ? Text(item.trailing!, style: TextStyle(color: Colors.grey[400], fontSize: 12))
                   : const Icon(Icons.chevron_right_rounded, size: 20),
-                onTap: () {},
+                onTap: item.onTap,
               ),
               if (!isLast)
                 Divider(height: 1, indent: 60, color: Theme.of(context).dividerColor.withOpacity(0.5)),
@@ -426,6 +540,7 @@ class _ProfileItem {
   final IconData icon;
   final String title;
   final String? trailing;
+  final VoidCallback? onTap;
 
-  _ProfileItem({required this.icon, required this.title, this.trailing});
+  _ProfileItem({required this.icon, required this.title, this.trailing, this.onTap});
 }

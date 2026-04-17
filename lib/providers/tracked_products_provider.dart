@@ -209,7 +209,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
   Future<void> addTrackedProduct(Product product) async {
     try {
       await storageService.addTrackedProduct(product.id);
-      await trackingApiService.addTrackedItem(product.id, targetPrice: _targetPrices[product.id]);
+      trackingApiService.addTrackedItem(product.id, targetPrice: _targetPrices[product.id]);
       final currentState = state.maybeWhen(
         data: (items) => items,
         orElse: () => <TrackedProduct>[],
@@ -265,7 +265,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
       await storageService.removeTrackedProduct(productId);
       await storageService.removePriceHistory(productId);
       await storageService.removeTargetPrice(productId);
-      await trackingApiService.removeTrackedItem(productId);
+      trackingApiService.removeTrackedItem(productId);
 
       _trackingData.remove(productId);
       _targetPrices.remove(productId);
@@ -376,7 +376,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
     try {
       _targetPrices[productId] = targetPrice;
       await storageService.saveTargetPrice(productId, targetPrice);
-      await trackingApiService.updateTargetPrice(productId, targetPrice);
+      trackingApiService.updateTargetPrice(productId, targetPrice);
 
       final currentState = state.maybeWhen(
         data: (items) => items,
@@ -412,7 +412,7 @@ class TrackedProductsNotifier extends Notifier<AsyncValue<List<TrackedProduct>>>
     try {
       _targetPrices.remove(productId);
       await storageService.removeTargetPrice(productId);
-      await trackingApiService.updateTargetPrice(productId, null);
+      trackingApiService.updateTargetPrice(productId, null);
 
       final currentState = state.maybeWhen(
         data: (items) => items,

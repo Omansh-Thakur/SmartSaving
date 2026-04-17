@@ -1,16 +1,22 @@
-import sqlite3
+import psycopg
+from psycopg.rows import dict_row
 import os
 from datetime import datetime
 from typing import Optional, Dict, Any
+from dotenv import load_dotenv
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "app.db")
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if not DATABASE_URL:
+        raise ValueError("DATABASE_URL environment variable is not set")
+    return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
 def init_db():
+    if not DATABASE_URL:
+        return
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -28,7 +34,7 @@ def init_db():
 def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
     row = cursor.fetchone()
     conn.close()
     if row:
@@ -43,7 +49,7 @@ def create_user(user_id: str, email: str, name: str, hashed_password: str) -> Di
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO users (id, email, name, hashed_password, created_at) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO users (id, email, name, hashed_password, created_at) VALUES (%s, %s, %s, %s, %s)",
         (user_id, email, name, hashed_password, created_at)
     )
     conn.commit()

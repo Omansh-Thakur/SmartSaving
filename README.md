@@ -202,37 +202,41 @@ We used **Riverpod** for state management because it's clean and easy to test. *
 
 ```
 lib/
-├── main.dart                  # App starts here
-├── models/                    # Data structures
+├── main.dart (101 lines)
+├── models/ (4 files)
 │   ├── user.dart
 │   ├── product.dart
 │   ├── tracked_product.dart
 │   └── price_alert.dart
-├── services/                  # Talking to APIs & Auth
-│   ├── auth_service.dart      # Login/Register (mock)
-│   ├── amazon_service.dart    # Amazon prices (mock)
-│   ├── flipkart_service.dart  # Flipkart prices (mock)
+├── services/ (7 files)
+│   ├── auth_service.dart
+│   ├── storage_service.dart
+│   ├── amazon_service.dart
+│   ├── flipkart_service.dart
+│   ├── price_comparison_service.dart
+│   ├── price_prediction_service.dart
 │   └── notification_service.dart
-├── providers/                 # State management
+├── providers/ (4 files)
 │   ├── auth_provider.dart
 │   ├── product_provider.dart
 │   ├── tracked_products_provider.dart
 │   └── price_prediction_provider.dart
-├── screens/                   # App pages
+├── screens/ (6 files)
 │   ├── splash_screen.dart
 │   ├── login_screen.dart
 │   ├── register_screen.dart
 │   ├── home_screen.dart
 │   ├── product_detail_screen.dart
 │   └── price_history_screen.dart
-├── widgets/                   # Reusable UI pieces
+├── widgets/ (4 files)
 │   ├── product_card.dart
-│   ├── price_comparison_widget.dart
-│   └── custom_app_bar.dart
-└── utils/
+│   ├── price_comparison_card.dart
+│   ├── loading_skeleton.dart
+│   └── app_bar.dart
+└── utils/ (3 files)
     ├── constants.dart
-    ├── validators.dart
-    └── theme.dart
+    ├── currency_formatter.dart
+    └── date_formatter.dart
 ```
 
 ---

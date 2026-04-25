@@ -39,53 +39,48 @@ We built this as a student project to solve a real problem we face every day.
 
 ## ✨ Features
 
-### 🔐 User Accounts
+✅ **User Authentication**
 
-- Create an account with email and password
-- Your data stays logged in even after you close the app
-- Personalized profile
+- Email/password signup and login
+- Persistent session management
+- Secure logout
 
-### 🔍 Search Products
+✅ **Product Search & Listing**
 
-- Search for anything across 8+ categories
-- See all the products available
-- Filter by price if you want
+- Real-time product search
+- Price comparison across platforms
+- Beautiful product cards with ratings
+- One-tap tracking
 
-### 💳 Compare Prices
+✅ **Price Comparison**
 
-- See Amazon and Flipkart prices side by side
-- Instantly know which is cheaper
-- Click to buy directly from the app
+- Side-by-side Amazon vs Flipkart prices
+- Automatic best price highlighting
+- Savings calculation
 
-### 📈 Price History
+✅ **Price History & Analytics**
 
-- Beautiful charts showing are price trends
-- See if prices are going up or down
-- Track for weeks, months
+- Interactive price trend charts
+- Historical price snapshots
+- 7-day, 30-day, 90-day views
 
-### 🤖 Smart Predictions
+✅ **Price Prediction**
 
-- We predict when prices will drop
-- Shows you "best time to buy"
-- Based on patterns we found in data
+- AI-powered price trend analysis
+- "Best time to buy" recommendations
+- Confidence scores
 
-### 🔔 Price Alerts
+✅ **Price Alerts**
 
-- Get a notification when price drops
-- Set your target price
-- Never miss a deal
+- Set target prices for tracked products
+- Local notifications on price drops
+- Real-time alert triggering
 
-### ❤️ Save Products
+✅ **Tracked Products Dashboard**
 
-- One click to save products
-- Track multiple items at once
-- Easy access later
-
-### 💵 For Indians
-
-- All prices in ₹ (Indian Rupees)
-- Proper formatting with commas
-- Ready for Hindi later
+- Personalized product watchlist
+- Quick price updates
+- One-tap access to price history
 
 ---
 
@@ -113,7 +108,7 @@ flutter run
 
 ### Login Details (for testing)
 
-Just use these fake accounts:
+Just use this sample accounts:
 
 ```
 Email: test@example.com
@@ -132,8 +127,8 @@ Make sure you have:
 
 - **Flutter** - 3.10+
 - **Dart** - 3.10+
-- **Android SDK** - API 21+ (if testing on Android)
-- **Xcode** - 14+ (if testing on iOS)
+- **Android SDK** - API 21+ (for Android)
+- **Xcode** - 14+ (for iOS)
 - **Git** - to clone the repo
 
 ### Installation
@@ -186,16 +181,43 @@ We used **Riverpod** for state management because it's clean and easy to test. *
 
 ---
 
-## 🛠️ What we used
+## Key Components
 
-| What                   | Why                                            |
-| ---------------------- | ---------------------------------------------- |
-| **Flutter**            | Cross-platform (Android + iOS in one codebase) |
-| **Riverpod**           | State management is easier                     |
-| **Material Design 3**  | Looks modern and professional                  |
-| **FL Chart**           | Price history charts look beautiful            |
-| **Shared Preferences** | Store data locally, simple & reliable          |
+### Authentication Flow
 
+```
+LoginScreen → AuthService → StorageService → Home
+```
+
+### Product Search Flow
+
+```
+SearchInput → ProductProvider → AmazonService/FlipkartService → ProductCards
+```
+
+### Price Tracking Flow
+
+```
+Track Button → TrackedProductsNotifier → StorageService → Dashboard
+```
+
+### Price History Flow
+
+```
+Track Product → PriceHistory Updates → PricePrediction → Charts
+```
+---
+
+## 🛠️Tech Stack
+```
+- **Framework**: Flutter 3.10+
+- **Language**: Dart
+- **State Management**: Riverpod 2.4.0
+- **Local Storage**: Shared Preferences
+- **Charts**: FL Chart
+- **Notifications**: Flutter Local Notifications
+- **Architecture**: Clean Architecture with MVVM pattern
+```
 ---
 
 ## 📁 Folder Structure
@@ -302,16 +324,6 @@ flutter build ios --debug
 # Release
 flutter build ios --release
 ```
-
-### Before Publishing
-
-- [ ] Update version in `pubspec.yaml`
-- [ ] All tests pass: `flutter test`
-- [ ] No warnings: `flutter analyze`
-- [ ] Tested on real device
-- [ ] Updated CHANGELOG.md
-- [ ] Created git tag: `git tag v1.0.0`
-
 ---
 
 ## 🔧 Issues & Help
@@ -350,7 +362,7 @@ If you wanna add features or fix bugs:
 
 ## 📄 License
 
-MIT License - do whatever you want with it (credit us though! 😊)
+do whatever you want with it (credit us though! 😊)
 
 ---
 
@@ -371,14 +383,6 @@ MIT License - do whatever you want with it (credit us though! 😊)
 
 ---
 
-## 🙏 Thanks
-
-- Flutter team for making this framework
-- Google for Material Design
-- Everyone who tested and gave feedback
-
----
-
 **Made with ❤️ by NIT Delhi students in 2026**
 
-_Version 1.0.0 | Last updated: February 2026_
+_Version 1.0.0 | Last updated: April 2026_
